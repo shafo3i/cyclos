@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  cyclos-db:
+    image: postgis/postgis
+    networks:
+      - cyclos-net
+    environment:
+      POSTGRES_DB: cyclos
+      POSTGRES_USER: cyclos
+      POSTGRES_PASSWORD: cyclospwd
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: unless-stopped
+    volumes:
+      - cyclos-db-data:/var/lib/postgresql/data
+
+  cyclos-app:
+    image: cyclos/cyclos
+    networks:
+      - cyclos-net
+    ports:
+      - "80:8080"
+    environment:
+      DB_HOST: cyclos-db
+      DB_NAME: cyclos
+      DB_USER: cyclos
+      DB_PASSWORD: cyclospwd
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: unless-stopped
+    depends_on:
+      - cyclos-db
+
+networks:
+  cyclos-net:
+    driver: overlay
+
+volumes:
+  cyclos-db-data:
